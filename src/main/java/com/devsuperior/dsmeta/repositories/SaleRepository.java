@@ -3,14 +3,12 @@ package com.devsuperior.dsmeta.repositories;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import com.devsuperior.dsmeta.dto.SaleSellerDTO;
 import com.devsuperior.dsmeta.entities.Sale;
+import com.devsuperior.dsmeta.projections.SummaryMinProjection;
 
 public interface SaleRepository extends JpaRepository<Sale, Long> {
 
@@ -18,17 +16,17 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
             "FROM Sale obj " +
             "WHERE obj.date BETWEEN :minDate AND :maxDate " +
             "AND UPPER(obj.seller.name) LIKE UPPER(CONCAT('%', :sellerName, '%'))")
-    Page<SaleSellerDTO> searchByName(LocalDate minDate, LocalDate maxDate, String sellerName, Pageable pageable);
+    List<SaleSellerDTO> searchByName(LocalDate minDate, LocalDate maxDate, String sellerName); //, Pageable pageable);
 
-    @Query(nativeQuery = true, value = "SELECT s.name AS sellerName, SUM(sales.amount) AS TOTAL "
-    + "FROM tb_sales sales "
-    + "JOIN tb_seller s ON sales.seller_id = s.id "
-    + "WHERE sales.date BETWEEN :minDate AND :maxDate "
+    @Query(nativeQuery = true, value = "SELECT s.name AS sellerName, SUM(sale.amount) AS total "
+    + "FROM tb_sales sale "
+    + "JOIN tb_seller s ON sale.seller_id = s.id "
+    + "WHERE sale.date >=:minDate AND sale.date <=:maxDate "
     + "GROUP BY s.name ",
-    countQuery = "SELECT s.name AS sellerName, SUM(sales.amount) AS totalAmount "
-    + "FROM tb_sales sales "
-    + "JOIN tb_seller s ON sales.seller_id = s.id "
-    + "WHERE sales.date BETWEEN minDate AND sales.date "
+    countQuery = "SELECT s.name AS sellerName, SUM(sale.amount) AS total "
+    + "FROM tb_sales sale "
+    + "JOIN tb_seller s ON sale.seller_id = s.id "
+    + "WHERE sale.date >=:minDate AND sale.date <=:maxDate "
     + "ORDER BY s.name")
-    List<SaleSellerDTO> searchSumary(@Param("minDate")LocalDate minDate, @Param("maxDate") LocalDate maxDate); 
+    List<SummaryMinProjection> searchSumary(LocalDate minDate, LocalDate maxDate);
 }
