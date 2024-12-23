@@ -3,6 +3,8 @@ package com.devsuperior.dsmeta.repositories;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -16,7 +18,7 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
             "FROM Sale obj " +
             "WHERE obj.date BETWEEN :minDate AND :maxDate " +
             "AND UPPER(obj.seller.name) LIKE UPPER(CONCAT('%', :sellerName, '%'))")
-    List<SaleSellerDTO> searchByName(LocalDate minDate, LocalDate maxDate, String sellerName); //, Pageable pageable);
+    Page<SaleSellerDTO> searchByName(LocalDate minDate, LocalDate maxDate, String sellerName, Pageable pageable);
 
     @Query(nativeQuery = true, value = "SELECT s.name AS sellerName, SUM(sale.amount) AS total "
     + "FROM tb_sales sale "
@@ -28,5 +30,5 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     + "JOIN tb_seller s ON sale.seller_id = s.id "
     + "WHERE sale.date >=:minDate AND sale.date <=:maxDate "
     + "ORDER BY s.name")
-    List<SummaryMinProjection> searchSumary(LocalDate minDate, LocalDate maxDate);
+    List<SummaryMinProjection> searchSumary(LocalDate minDate, LocalDate maxDate);//, Pageable pageable);
 }

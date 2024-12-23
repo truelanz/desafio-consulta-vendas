@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +32,7 @@ public class SaleService {
 	}
 
 	//findReport
-	public List<SaleSellerDTO> findReport(String minDate, String maxDate, String name, Pageable pageable) {
+	public Page<SaleSellerDTO> findReport(String minDate, String maxDate, String name, Pageable pageable) {
 
 		//Sefinindo data atual do sistema
 		LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
@@ -40,12 +41,12 @@ public class SaleService {
 		//Caso não houver passado a data minima, retornar a data de 1 anos anterior à data maxima, caso contrário, retornar a data que foi passada.
         LocalDate initialDate = (minDate == null || minDate.equals("")) ? finalDate.minusYears(1L) : LocalDate.parse(minDate);
 
-        List<SaleSellerDTO> result = repository.searchByName(initialDate, finalDate, name); //, pageable);
+        Page<SaleSellerDTO> result = repository.searchByName(initialDate, finalDate, name, pageable);
         return result;
     }
 
 	//SearchBySymmary
-	public List<SummaryMinDTO> findSummary(String minDate, String maxDate){
+	public List<SummaryMinDTO> findSummary(String minDate, String maxDate)/* , Pageable pageable) */{
 
 		// Determinando as datas inicial e final
         LocalDate initialDate;
@@ -62,9 +63,10 @@ public class SaleService {
             finalDate = LocalDate.parse(maxDate);
         }
 
-        List<SummaryMinProjection> list = repository.searchSumary(initialDate, finalDate);
-        List<SummaryMinDTO> dto = list.stream().map(x -> new SummaryMinDTO(x)).collect(Collectors.toList());
-		return dto;
+		List<SummaryMinProjection> list = repository.searchSumary(initialDate, finalDate);//, pageable);
+        List<SummaryMinDTO> result = list.stream().map(x -> new SummaryMinDTO(x)).collect(Collectors.toList());
+
+		return result;
 	}
 
 }
